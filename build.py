@@ -29,10 +29,6 @@ class BuildClass(object):
         else:
             self.savePath = './output'
         self.ipaPath = './ipaInfo.plist'
-        if configuration == 'Release':
-            self.method = 'app-store'
-        else:
-            self.method = 'development'
 
 
     def build(self):
@@ -157,6 +153,10 @@ class BuildClass(object):
 
 
     def __createPlistFile(self, bundleId):
+        if self.configuration == 'Release':
+            self.method = 'app-store'
+        else:
+            self.method = 'development'
         ipaInfoDic = {
             "signingCertificate": self.certification_name,
             "provisioningProfiles": {
