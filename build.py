@@ -165,7 +165,6 @@ class BuildClass(object):
             "method": self.method,
             "compileBitcode": True
         }
-        print(self.ipaPath.split('/')[-1])
         fileExist = os.path.exists(self.ipaPath)
         if fileExist:
             os.remove(self.ipaPath)
