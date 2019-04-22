@@ -29,6 +29,10 @@ class BuildClass(object):
         else:
             self.savePath = './output'
         self.ipaPath = './ipaInfo.plist'
+        if configuration == 'Release':
+            self.method = 'app-store'
+        else:
+            self.method = 'development'
 
 
     def build(self):
@@ -78,7 +82,6 @@ class BuildClass(object):
 
     def archive(self):
         self.__prepare()
-        self.__createPlistFile(self.buildInfo['buildSettings']['PRODUCT_BUNDLE_IDENTIFIER'])
         archivePath = self.savePath + '/' + self.scheme + '.xcarchive'
         if os.path.exists(archivePath):
             subprocess.call(['rm', '-rf', archivePath])
@@ -111,6 +114,7 @@ class BuildClass(object):
 
     def exportArchive(self):
         self.__prepare()
+        self.__createPlistFile(self.buildInfo['buildSettings']['PRODUCT_BUNDLE_IDENTIFIER'])
         archivePath = self.savePath + '/' + self.scheme + '.xcarchive'
         exportPath = self.savePath + '/Exported'
         cmds = [
@@ -153,37 +157,28 @@ class BuildClass(object):
 
 
     def __createPlistFile(self, bundleId):
-        header = '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n\t<dict>\n'
-        footer = '\t</dict>\n</plist>\n'
-        str = ''
-        str += header
-        #cert
-        str += '\t\t<key>signingCertificate</key>\n'
-        str += '\t\t<string>%s</string>\n' % self.certification_name
-        #provisioningProfiles
-        str += '\t\t<key>provisioningProfiles</key>\n'
-        str += '\t\t<dict>\n'
-        str += '\t\t\t<key>%s</key>\n' % bundleId
-        str += '\t\t\t<string>%s</string>\n' % self.provisioning_profile_uuid
-        str += '\t\t</dict>\n'
-        #method
-        str += '\t\t<key>method</key>\n'
-        str += '\t\t<string>development</string>\n'
-        #bitcode
-        str += '\t\t<key>compileBitcode</key>\n'
-        str += '\t\t<true/>\n'
-        str += footer
-
-        
+        ipaInfoDic = {
+            "signingCertificate": self.certification_name,
+            "provisioningProfiles": {
+                bundleId: self.provisioning_profile_uuid
+            },
+            "method": self.method,
+            "compileBitcode": True
+        }
+        print(self.ipaPath.split('/')[-1])
         fileExist = os.path.exists(self.ipaPath)
         if fileExist:
             os.remove(self.ipaPath)
         try:
             f = open(self.ipaPath, 'w')
-            f.write(str)
-
+            f.write(json.dumps(ipaInfoDic))
         finally:
             f.close()
+            self.__execute_sys([
+                'plutil', 
+                '-convert', 'xml1',
+                self.ipaPath
+            ])
 
     
     def __get_build_settings(self, scheme=None):
@@ -229,7 +224,13 @@ class BuildClass(object):
             obj = json.loads(jsonStr)
             return obj
         
-        
+    def __execute_sys(self, cmds):
+        p = subprocess.Popen(cmds)
+        v = p.wait()
+        if v == 0:
+            return 0
+        else:
+            exit(v)
 
     def __execute(self, cmds):
         if self.quiet:
