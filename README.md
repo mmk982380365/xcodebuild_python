@@ -3,7 +3,7 @@ An automatically building python script
 
 
 # Usage: 
---
+---
 
 	./build.py [[-h]|[--help]] [[-v]|[--version]] [[-q][--quiet]] [[-a <actionname>]|[-action]] [[-p provisionprofileuuid]|[--provisioning-profile-uuid provisionprofileuuid]] [[-c certname]|[--certification-name certname]] [[-t teamid]|[--team-id teamid]] [[-s scheme]|[--scheme scheme]] [[-C configuration]|[--configuration configuration]] [[-o outputpath]|[--output outputpath]] <build|clean|archive|export>
 
